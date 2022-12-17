@@ -7,12 +7,6 @@ HEIGHT = 80
 MIN_ROOM_SIZE = 6
 MAX_ROOM_SIZE = 15
 
-# Constants for the BSP tree
-TOP_LEFT = 1
-TOP_RIGHT = 2
-BOTTOM_LEFT = 3
-BOTTOM_RIGHT = 4
-
 class Node:
     def __init__(self, x, y, width, height):
         self.x = x
@@ -67,6 +61,13 @@ def generate_bsp_tree(node, depth):
     generate_bsp_tree(node.left, depth + 1)
     generate_bsp_tree(node.right, depth + 1)
 
+def add_borders(game_world, width, height):
+    for i in range(height):
+        for j in range(width):
+            if i == 0 or i == height - 1 or j == 0 or j == width - 1:
+                game_world[i][j] = '#'
+    return game_world
+
 def generate_game_world():
     game_world = [['#' for _ in range(WIDTH)] for _ in range(HEIGHT)]
     # Create the root node of the BSP tree
@@ -76,6 +77,7 @@ def generate_game_world():
 
     # Use the BSP tree to create the game world
     create_game_world_from_bsp_tree(game_world, root)
+    add_borders(game_world, WIDTH, HEIGHT)
 
     return game_world
 
@@ -86,7 +88,7 @@ def print_node(node):
 def create_game_world_from_bsp_tree(game_world, node):
     # Base case: if the node is a leaf, create a room
     if node.left is None and node.right is None:
-        create_room(game_world, node.x+1, node.y+1, node.width-2, node.height-2)
+        create_room(game_world, node.x+1, node.y+1, node.width-1, node.height-1)
         return
 
     if node.left is not None:
@@ -94,10 +96,10 @@ def create_game_world_from_bsp_tree(game_world, node):
     if node.right is not None:
         create_game_world_from_bsp_tree(game_world, node.right)
     
-    #if node.left is not None and node.right is not None:
-        #left_room = get_room_in_node(node.left)
-        #right_room = get_room_in_node(node.right)
-        #create_corridor(game_world, left_room, right_room)
+    if node.left is not None and node.right is not None:
+        left_room = get_room_in_node(node.left)
+        right_room = get_room_in_node(node.right)
+        create_corridor(game_world, left_room, right_room)
 
 # note this isn't used yet... But I think it might be useful (it basically doe's the same as
 #　create_room(game_world, node.x+1, node.y+1, node.width-2, node.height-2)
