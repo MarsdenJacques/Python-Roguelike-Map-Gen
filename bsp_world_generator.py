@@ -21,6 +21,7 @@ class Node:
         self.right = None
 
 def generate_bsp_tree(node, depth):
+    print("generate_bsp_tree")
     # Base case: if the node is too small, return
     if node.width < MIN_ROOM_SIZE or node.height < MIN_ROOM_SIZE:
         return
@@ -53,6 +54,7 @@ def generate_bsp_tree(node, depth):
     generate_bsp_tree(node.right, depth + 1)
 
 def generate_game_world():
+    print("generate_game_world")
     game_world = [['#' for _ in range(WIDTH)] for _ in range(HEIGHT)]
 
     # Create the root node of the BSP tree
@@ -65,68 +67,86 @@ def generate_game_world():
 
     return game_world
 
-def create_game_world_from_bsp_tree(game_world, node, node_type=None):
+def create_game_world_from_bsp_tree(game_world, node):
+    print("create_game_world_from_bsp_tree")
     # Base case: if the node is a leaf, create a room
     if node.left is None and node.right is None:
         create_room(game_world, node.x, node.y, node.width, node.height)
         return
 
-    # Choose a random location for the corridor in the left node
     if node.left is not None:
-        x = random.randint(node.left.x, node.left.x + node.left.width - 1)
-        y = random.randint(node.left.y, node.left.y + node.left.height - 1)
-        if node_type == TOP_LEFT:
-            create_corridor_horizontally(game_world, x, y, node.right.x - x + 1)
-        elif node_type == BOTTOM_LEFT:
-            create_corridor_horizontally(game_world, x, y, node.right.x - x + 1)
-            create_corridor_vertically(game_world, node.right.x, node.right.y, y - node.right.y + 1)
-        else:
-            create_corridor_vertically(game_world, x, y, node.right.y - y + 1)
-
-    # Choose a random location for the corridor in the right node
+        create_game_world_from_bsp_tree(game_world, node.left)
     if node.right is not None:
-        x = random.randint(node.right.x, node.right.x + node.right.width - 1)
-        y = random.randint(node.right.y, node.right.y + node.right.height - 1)
-        if node_type == TOP_RIGHT:
-            create_corridor_horizontally(game_world, x, y, node.left.x - x + 1)
-        elif node_type == BOTTOM_RIGHT:
-            create_corridor_horizontally(game_world, x, y, node.left.x - x + 1)
-            create_corridor_vertically(game_world, node.left.x, node.left.y, y - node.left.y + 1)
-        else:
-            create_corridor_vertically(game_world, x, y, node.left.y - y + 1)
+        create_game_world_from_bsp_tree(game_world, node.right)
+    
+    if node.left is not None and node.right is not None:
+        left_room = get_room_in_node(node.left)
+        right_room = get_room_in_node(node.right)
+        create_corridor(game_world, left_room, right_room)
 
-    # Recursively create the left and right nodes
+def get_room_in_node(node):
+    print("get_room_in_node")
+    # Base case: if the node is a leaf, return the room coordinates
+    if node.left is None and node.right is None:
+        x = random.randint(node.x + 1, node.x + node.width - 2)
+        y = random.randint(node.y + 1, node.y + node.height - 2)
+        return x, y
+
+    # Recursively search for a room in the left or right node
     if node.left is not None:
-        if node_type == TOP_LEFT:
-            create_game_world_from_bsp_tree(game_world, node.left, BOTTOM_LEFT)
-        elif node_type == BOTTOM_LEFT:
-            create_game_world_from_bsp_tree(game_world, node.left, TOP_LEFT)
-        else:
-            create_game_world_from_bsp_tree(game_world, node.left, TOP_LEFT)
+        room = get_room_in_node(node.left)
+        if room is not None:
+            return room
     if node.right is not None:
-        if node_type == TOP_RIGHT:
-            create_game_world_from_bsp_tree(game_world, node.right, BOTTOM_RIGHT)
-        elif node_type == BOTTOM_RIGHT:
-            create_game_world_from_bsp_tree(game_world, node.right, TOP_RIGHT)
-        else:
-            create_game_world_from_bsp_tree(game_world, node.right, TOP_RIGHT)
-        
-        
-            
+        room = get_room_in_node(node.right)
+        if room is not None:
+            return room
+
 def create_room(game_world, x, y, width, height):
-    for i in range(x, x + width):
-        for j in range(y, y + height):
+    print("create_room")
+    for i in range(x + 1, x + width - 1):
+        for j in range(y + 1, y + height - 1):
             game_world[j][i] = '.'
 
+def create_corridor(game_world, start, end):
+    print("create_corridor")
+    x1, y1 = start
+    x2, y2 = end
+    if x1 == x2:
+        create_corridor_vertically(game_world, x1, y1, y2 - y1)
+    elif y1 == y2:
+        create_corridor_horizontally(game_world, x1, y1, x2 - x1)
+    else:
+        # Choose a random direction to go first
+        if random.random() < 0.5:
+            create_corridor_horizontally(game_world, x1, y1, x2 - x1)
+            create_corridor_vertically(game_world, x2, y1, y2 - y1)
+        else:
+            create_corridor_vertically(game_world, x1, y1, y2 - y1)
+            create_corridor_horizontally(game_world, x1, y2, x2 - x1)
+            
 def create_corridor_horizontally(game_world, x, y, length):
+    print("create_corridor_horizontally")
     for i in range(x, x + length):
         game_world[y][i] = '.'
 
 def create_corridor_vertically(game_world, x, y, length):
+    print("create_corridor_vertically")
     for i in range(y, y + length):
         game_world[i][x] = '.'
 
-if __name__ == '__main__':
-    game_world = generate_game_world()
+def print_game_world(game_world):
+    print("print_game_world")
     for row in game_world:
         print(''.join(row))
+
+def main():
+    print("main")
+    game_world = generate_game_world()
+    print_game_world(game_world)
+
+if __name__ == '__main__':
+    main()
+
+
+
