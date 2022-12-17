@@ -4,22 +4,33 @@ import sys
 import termios
 
 # Define some constants for the game
-WALL_CHAR = u'\u2588'  # Full block character
+WALL_CHAR = u'\u2622'  # Full block character
 DOOR_CHAR = u'\u2591'
-PLAYER_CHAR = u'\u4eba'  # Unicode character for 'person'
+PLAYER_CHAR = u'\u2622'  # Unicode character for 'person'
+MONSTER_CHAR = u'\u2622'
+TREASURE_CHAR = u'\u26cf'
+FLOOR_CHAR = u'\u0020'
+
 ROOM_WIDTH = 5
 ROOM_HEIGHT = 5
 
-game_world = [[('wall', None), ('wall', None),  ('door', None),  ('wall', None),  ('door', None),  ('wall', None),  ('wall', None),  ('door', None),  ('wall', None), ('wall', None)],
-    [('wall', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('wall', None)],
-    [('wall', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('wall', None)],
-    [('wall', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('wall', None)],
-    [('wall', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('wall', None)],
-    [('wall', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('wall', None)],
-    [('wall', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('wall', None)],
-    [('wall', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('wall', None)],
-    [('wall', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('floor', None), ('wall', None)],
-    [('wall', None), ('wall', None),  ('door', None),  ('wall', None),  ('door', None),  ('wall', None),  ('wall', None),  ('door', None),  ('wall', None), ('wall', None)]]
+class Tile:
+    def __init__(self, type, monster=None, treasure=None, additional=None):
+        self.type = type
+        self.monster = monster
+        self.treasure = treasure
+        self.additional = additional
+    
+game_world = [[Tile('wall'), Tile('wall'), Tile('door'), Tile('wall'), Tile('door'), Tile('wall'), Tile('wall'), Tile('door'), Tile('wall'), Tile('wall')],
+              [Tile('wall'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('wall')],
+              [Tile('wall'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('wall')],
+              [Tile('wall'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('wall')],
+              [Tile('wall'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('wall')],
+              [Tile('wall'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('wall')],
+              [Tile('wall'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('wall')],
+              [Tile('wall'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('treasure', 'gold coins'), Tile('floor'), Tile('floor'), Tile('wall')],
+              [Tile('wall'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('wall')],
+              [Tile('wall'), Tile('wall'), Tile('door'), Tile('wall'), Tile('door'), Tile('wall'), Tile('wall'), Tile('door'), Tile('wall'), Tile('wall')]]
 
 
 # Place the player in the center of the room
@@ -35,25 +46,32 @@ def draw_game_world():
     # Clear the screen
     sys.stdout.write('\x1b[2J')
 
-    # Draw the player
-    sys.stdout.write(f'\x1b[{player_y + 1};{player_x + 1}H{PLAYER_CHAR}')
-
-    # Draw the walls
+    tile_mapping = {
+        'player' : PLAYER_CHAR,
+        'wall': WALL_CHAR,
+        'door': DOOR_CHAR,
+        'floor': FLOOR_CHAR,
+        'monster': MONSTER_CHAR,
+        'treasure': TREASURE_CHAR,
+    }
+    
     for y, row in enumerate(game_world):
-        for x, char in enumerate(row):
-            if char[0] == 'wall':
-                sys.stdout.write(f'\x1b[{y + 1};{x + 1}H{WALL_CHAR}')
-            elif char[0] == 'door':
-                sys.stdout.write(f'\x1b[{y + 1};{x + 1}H{DOOR_CHAR}')
-
+        for x, tile in enumerate(row):
+            # Draw the player
+            if x == player_x and y == player_y:
+                sys.stdout.write(f'\x1b[{y + 1};{x + 1}H{PLAYER_CHAR}')
+            # Draw other tiles using the mapping
+            else:
+                sys.stdout.write(f'\x1b[{y + 1};{x + 1}H{tile_mapping[tile.type]}')
+                
     # Refresh the screen
     sys.stdout.flush()
    
 def check_collision(player_x, player_y):
     # Get the tile the player is currently standing on
     tile = game_world[player_y][player_x]
-    tile_type = tile[0]
-    additional_info = tile[1]
+    tile_type = tile.type
+    additional_info = tile.additional
     
     if tile_type == 'wall':
         # Player cannot walk through walls
@@ -81,8 +99,7 @@ def move_player(dx, dy):
         # Update the player's position and redraw the room
         player_x = new_x
         player_y = new_y
-        game_world[player_y][player_x] = ('player', None)
-        
+         
     draw_game_world()
     return True
 
