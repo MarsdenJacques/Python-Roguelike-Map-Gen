@@ -23,34 +23,42 @@ class Node:
         self.right = None
 
 def generate_bsp_tree(node, depth):
-    print("generate_bsp_tree")
     # Base case: if the node is too small, return
     if node.width < MIN_ROOM_SIZE or node.height < MIN_ROOM_SIZE:
+        print("returning from generate_bsp_tree")
+        print_node(node)
         return
-
-    # Randomly decide if we should split the node horizontally or vertically
+    
     split_horizontally = random.random() < 0.5
     if split_horizontally:
-        print("split_horizontally")
         # Calculate the maximum possible split position
-        max_split = node.height - MIN_ROOM_SIZE - 1
+        max_split = node.height - MIN_ROOM_SIZE - 1 
+        #max_split = min(max_split, MAX_ROOM_SIZE - MIN_ROOM_SIZE)
+        print(max_split)
+        
         if max_split <= MIN_ROOM_SIZE:
+            print("returning from generate_bsp_tree")
+            print_node(node)
             return
         # Choose a random split position
         split = random.randint(MIN_ROOM_SIZE + 1, max_split)
-        print(split)
+        print("split: " + str(split))
         # Create the left and right nodes
         node.left = Node(node.x, node.y, node.width, split)
         node.right = Node(node.x, node.y + split, node.width, node.height - split)
     else:
-        print("split_vertically")
         # Calculate the maximum possible split position
         max_split = node.width - MIN_ROOM_SIZE - 1
+        #max_split = min(max_split, MAX_ROOM_SIZE - MIN_ROOM_SIZE)
+        print(max_split)
+        
         if max_split <= MIN_ROOM_SIZE:
+            print("returning from generate_bsp_tree")
+            print_node(node)
             return
         # Choose a random split position
         split = random.randint(MIN_ROOM_SIZE + 1, max_split)
-        print(split)
+        print("split: " + str(split))
         # Create the left and right nodes
         node.left = Node(node.x, node.y, split, node.height)
         node.right = Node(node.x + split, node.y, node.width - split, node.height)
@@ -60,7 +68,6 @@ def generate_bsp_tree(node, depth):
     generate_bsp_tree(node.right, depth + 1)
 
 def generate_game_world():
-    print("generate_game_world")
     game_world = [['#' for _ in range(WIDTH)] for _ in range(HEIGHT)]
     # Create the root node of the BSP tree
     root = Node(0, 0, WIDTH, HEIGHT)
@@ -77,11 +84,8 @@ def print_node(node):
         print(f'{key}: {value}')
     
 def create_game_world_from_bsp_tree(game_world, node):
-    print("create_game_world_from_bsp_tree")
     # Base case: if the node is a leaf, create a room
     if node.left is None and node.right is None:
-        print("printing node:")
-        print_node(node)
         create_room(game_world, node.x+1, node.y+1, node.width-2, node.height-2)
         return
 
@@ -90,13 +94,14 @@ def create_game_world_from_bsp_tree(game_world, node):
     if node.right is not None:
         create_game_world_from_bsp_tree(game_world, node.right)
     
-    '''if node.left is not None and node.right is not None:
-        left_room = get_room_in_node(node.left)
-        right_room = get_room_in_node(node.right)
-        create_corridor(game_world, left_room, right_room)'''
+    #if node.left is not None and node.right is not None:
+        #left_room = get_room_in_node(node.left)
+        #right_room = get_room_in_node(node.right)
+        #create_corridor(game_world, left_room, right_room)
 
+# note this isn't used yet... But I think it might be useful (it basically doe's the same as
+#　create_room(game_world, node.x+1, node.y+1, node.width-2, node.height-2)
 def get_room_in_node(node):
-    print("get_room_in_node")
     # Base case: if the node is a leaf, return the room coordinates
     if node.left is None and node.right is None:
         x = random.randint(node.x + 1, node.x + node.width - 2)
@@ -109,17 +114,16 @@ def get_room_in_node(node):
         return get_room_in_node(node.right)
 
 def create_room(game_world, x, y, width, height):
-    print("create_room")
-    print(x)
-    print(y)
-    print(width)
-    print(height)
+    #print("create_room")
+    #print(x)
+    #print(y)
+    #print(width)
+    #print(height)
     for i in range(x, x + width):
         for j in range(y, y + height):
             game_world[j][i] = '.'
 
 def create_corridor(game_world, start, end):
-    print("create_corridor")
     x1, y1 = start
     x2, y2 = end
     
@@ -142,13 +146,11 @@ def create_corridor(game_world, start, end):
             game_world[y1][x] = '.'
             
 def print_game_world(game_world):
-    print("print_game_world")
     #sys.stdout.write('\x1b[2J')
     for row in game_world:
         print(''.join(row))
 
 def main():
-    print("main")
     game_world = generate_game_world()
     print_game_world(game_world)
 
