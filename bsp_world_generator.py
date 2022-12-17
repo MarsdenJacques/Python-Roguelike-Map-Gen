@@ -6,6 +6,7 @@ WIDTH = 80
 HEIGHT = 80
 MIN_ROOM_SIZE = 6
 MAX_ROOM_SIZE = 15
+DOOR_CHANCE = .75
 
 '''game_world =  [[Tile('wall'), Tile('wall'), Tile('door'), Tile('wall'), Tile('door'), Tile('wall'), Tile('wall'), Tile('door'), Tile('wall'), Tile('wall')],
               [Tile('wall'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('wall')],
@@ -114,11 +115,6 @@ def create_game_world_from_bsp_tree(game_world, node):
         create_game_world_from_bsp_tree(game_world, node.left)
     if node.right is not None:
         create_game_world_from_bsp_tree(game_world, node.right)
-    
-    if node.left is not None and node.right is not None:
-        #left_room = get_room_in_node(node.left)
-        right_room = get_room_in_node(node.right)
-        #create_corridor(game_world, left_room, right_room)
 
 # note this isn't used yet... But I think it might be useful (it basically doe's the same as
 #　create_room(game_world, node.x+1, node.y+1, node.width-2, node.height-2)
@@ -127,7 +123,7 @@ def get_room_in_node(node):
     if node.left is None and node.right is None:
         x = random.randint(node.x + 1, node.x + node.width - 2)
         y = random.randint(node.y + 1, node.y + node.height - 2)
-        return x, y
+        return node
 
     if node.left is not None:
         return get_room_in_node(node.left)
@@ -146,6 +142,20 @@ def create_room(game_world, x, y, width, height):
     for i in range(y, y + height + 1):
         game_world[x][i] = Tile('wall')
         game_world[x + width][i] = Tile('wall')
+    for horizontalWall in range (0, 2):
+        wallLocation = y + height * horizontalWall
+        if wallLocation is 0 or wallLocation is HEIGHT - 1:
+            continue
+        doorIndex = random.randint(x + 1, x + round(width * (1+DOOR_CHANCE)))
+        if(doorIndex < x + width):
+            game_world[doorIndex][wallLocation] = Tile('floor')
+    for verticalWall in range (0, 2):
+        wallLocation = x + width * verticalWall
+        if wallLocation is 0 or wallLocation is WIDTH - 1:
+            continue
+        doorIndex = random.randint(y + 1, y + round(height * (1+DOOR_CHANCE)))
+        if(doorIndex < x + width):
+            game_world[wallLocation][doorIndex] = Tile('floor')
 
 def create_corridor(game_world, start, end):
     x1, y1 = start
