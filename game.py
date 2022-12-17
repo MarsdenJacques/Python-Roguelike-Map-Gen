@@ -3,6 +3,9 @@ import tty
 import sys
 import termios
 
+from bsp_world_generator import get_a_world, print_game_world
+
+
 # Define some constants for the game
 WALL_CHAR = u'\u2622'  # Full block character
 DOOR_CHAR = u'\u2591'
@@ -11,31 +14,11 @@ MONSTER_CHAR = u'\u2622'
 TREASURE_CHAR = u'\u26cf'
 FLOOR_CHAR = u'\u0020'
 
-ROOM_WIDTH = 5
-ROOM_HEIGHT = 5
-
-class Tile:
-    def __init__(self, type, monster=None, treasure=None, additional=None):
-        self.type = type
-        self.monster = monster
-        self.treasure = treasure
-        self.additional = additional
-    
-game_world = [[Tile('wall'), Tile('wall'), Tile('door'), Tile('wall'), Tile('door'), Tile('wall'), Tile('wall'), Tile('door'), Tile('wall'), Tile('wall')],
-              [Tile('wall'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('wall')],
-              [Tile('wall'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('wall')],
-              [Tile('wall'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('wall')],
-              [Tile('wall'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('wall')],
-              [Tile('wall'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('wall')],
-              [Tile('wall'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('wall')],
-              [Tile('wall'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('treasure', 'gold coins'), Tile('floor'), Tile('floor'), Tile('wall')],
-              [Tile('wall'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('wall')],
-              [Tile('wall'), Tile('wall'), Tile('door'), Tile('wall'), Tile('door'), Tile('wall'), Tile('wall'), Tile('door'), Tile('wall'), Tile('wall')]]
-
+game_world = get_a_world()
 
 # Place the player in the center of the room
-player_x = ROOM_WIDTH // 2
-player_y = ROOM_HEIGHT // 2
+player_x = 10
+player_y = 10
 
 
 old_settings = None

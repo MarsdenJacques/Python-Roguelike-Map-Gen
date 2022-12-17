@@ -7,6 +7,25 @@ HEIGHT = 80
 MIN_ROOM_SIZE = 6
 MAX_ROOM_SIZE = 15
 
+'''game_world =  [[Tile('wall'), Tile('wall'), Tile('door'), Tile('wall'), Tile('door'), Tile('wall'), Tile('wall'), Tile('door'), Tile('wall'), Tile('wall')],
+              [Tile('wall'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('wall')],
+              [Tile('wall'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('wall')],
+              [Tile('wall'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('wall')],
+              [Tile('wall'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('wall')],
+              [Tile('wall'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('wall')],
+              [Tile('wall'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('wall')],
+              [Tile('wall'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('treasure', 'gold coins'), Tile('floor'), Tile('floor'), Tile('wall')],
+              [Tile('wall'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('floor'), Tile('wall')],
+              [Tile('wall'), Tile('wall'), Tile('door'), Tile('wall'), Tile('door'), Tile('wall'), Tile('wall'), Tile('door'), Tile('wall'), Tile('wall')]]
+'''
+
+class Tile:
+    def __init__(self, type, monster=None, treasure=None, additional=None):
+        self.type = type
+        self.monster = monster
+        self.treasure = treasure
+        self.additional = additional
+        
 class Node:
     def __init__(self, x, y, width, height):
         self.x = x
@@ -65,11 +84,11 @@ def add_borders(game_world, width, height):
     for i in range(height):
         for j in range(width):
             if i == 0 or i == height - 1 or j == 0 or j == width - 1:
-                game_world[i][j] = '#'
+                game_world[i][j] = Tile('wall')
     return game_world
 
 def generate_game_world():
-    game_world = [['#' for _ in range(WIDTH)] for _ in range(HEIGHT)]
+    game_world = [[Tile('wall') for _ in range(WIDTH)] for _ in range(HEIGHT)]
     # Create the root node of the BSP tree
     root = Node(0, 0, WIDTH, HEIGHT)
     # Generate the BSP tree
@@ -123,7 +142,7 @@ def create_room(game_world, x, y, width, height):
     #print(height)
     for i in range(x, x + width):
         for j in range(y, y + height):
-            game_world[j][i] = '.'
+            game_world[j][i] = Tile('floor')
 
 def create_corridor(game_world, start, end):
     x1, y1 = start
@@ -141,23 +160,22 @@ def create_corridor(game_world, start, end):
     if x1 == x2:
         # Vertical corridor
         for y in range(min(y1, y2), max(y1, y2) + 1):
-            game_world[y][x1] = '.'
+            game_world[y][x1] = Tile('floor')
     else:
         # Horizontal corridor
         for x in range(min(x1, x2), max(x1, x2) + 1):
-            game_world[y1][x] = '.'
+            game_world[y1][x] = Tile('floor')
             
 def print_game_world(game_world):
     #sys.stdout.write('\x1b[2J')
     for row in game_world:
         print(''.join(row))
 
-def main():
+def get_a_world():
     game_world = generate_game_world()
-    print_game_world(game_world)
-
-if __name__ == '__main__':
-    main()
+    # lets revist this in a bit for debug purposes
+    #print_game_world(game_world)
+    return game_world
 
 
 
